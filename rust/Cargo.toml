@@ -1,0 +1,15 @@
+[package]
+name = "data-structures-lib"
+version = "1.0.0"
+edition = "2021"
+authors = ["Parthiv Rawat"]
+license = "MIT"
+description = "A comprehensive, zero-dependency collection of fundamental data structures for Rust"
+repository = "https://github.com/parthivrawat/data-structures-lib"
+homepage = "https://github.com/parthivrawat/data-structures-lib"
+documentation = "https://docs.rs/data-structures-lib"
+readme = "README.md"
+keywords = ["data-structures", "collections", "stack", "queue", "heap"]
+categories = ["data-structures"]
+
+[dependencies]

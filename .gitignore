@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# TypeScript / Node
+node_modules/
+dist/
+coverage/
+
+# Go
+*.exe
+*.test
+*.out
+
+# Rust
+/target/
+Cargo.lock
+
+# Editor / OS
+.vscode/
+.idea/
+*.log
+.DS_Store
