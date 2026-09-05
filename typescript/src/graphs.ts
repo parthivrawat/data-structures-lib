@@ -1,3 +1,5 @@
+import { NotFoundError } from './exceptions';
+
 /**
  * A graph represented as an adjacency list.
  */
@@ -22,7 +24,7 @@ export class AdjacencyListGraph<T> {
 
   removeVertex(vertex: T): void {
     if (!this._adj.has(vertex)) {
-      throw new Error(`${vertex} not in graph`);
+      throw new NotFoundError(`${vertex} not in graph`);
     }
     for (const [, neighbors] of this._adj) {
       const index = neighbors.indexOf(vertex);
@@ -152,7 +154,7 @@ export class AdjacencyMatrixGraph<T> {
 
   removeVertex(vertex: T): void {
     if (!this._index.has(vertex)) {
-      throw new Error(`${vertex} not in graph`);
+      throw new NotFoundError(`${vertex} not in graph`);
     }
     const index = this._index.get(vertex)!;
     this._vertices.splice(index, 1);
@@ -190,7 +192,7 @@ export class AdjacencyMatrixGraph<T> {
 
   weight(u: T, v: T): number {
     if (!this._index.has(u) || !this._index.has(v)) {
-      throw new Error('vertex not in graph');
+      throw new NotFoundError('vertex not in graph');
     }
     return this._matrix[this._index.get(u)!][this._index.get(v)!];
   }

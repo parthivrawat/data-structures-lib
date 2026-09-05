@@ -1,3 +1,5 @@
+import { InvalidArgumentError, NotFoundError } from './exceptions';
+
 class TrieNode {
   children = new Map<string, TrieNode>();
   isEnd = false;
@@ -28,7 +30,7 @@ export class Trie {
   }
 
   insert(word: string): void {
-    if (typeof word !== 'string') throw new TypeError('Trie only supports string keys');
+    if (typeof word !== 'string') throw new InvalidArgumentError('Trie only supports string keys');
     let node = this._root;
     for (const char of word) {
       if (!node.children.has(char)) {
@@ -53,18 +55,18 @@ export class Trie {
   }
 
   search(word: string): boolean {
-    if (typeof word !== 'string') throw new TypeError('Trie only supports string keys');
+    if (typeof word !== 'string') throw new InvalidArgumentError('Trie only supports string keys');
     const node = this._find(word);
     return node !== null && node.isEnd;
   }
 
   startsWith(prefix: string): boolean {
-    if (typeof prefix !== 'string') throw new TypeError('Trie only supports string keys');
+    if (typeof prefix !== 'string') throw new InvalidArgumentError('Trie only supports string keys');
     return this._find(prefix) !== null;
   }
 
   delete(word: string): void {
-    if (!this.search(word)) throw new Error(`${word} not in trie`);
+    if (!this.search(word)) throw new NotFoundError(`${word} not in trie`);
     this._delete(this._root, word, 0);
     this._size--;
   }

@@ -1,3 +1,5 @@
+import { NotFoundError } from './exceptions';
+
 function defaultCompare<T>(a: T, b: T): number {
   if (a < b) return -1;
   if (a > b) return 1;
@@ -52,7 +54,7 @@ export class BinarySearchTree<T> {
   }
 
   delete(value: T): void {
-    if (!this.search(value)) throw new Error(`${value} not in tree`);
+    if (!this.search(value)) throw new NotFoundError(`${value} not in tree`);
     this._root = this._delete(this._root, value);
     this._size--;
   }
@@ -214,7 +216,7 @@ export class AVLTree<T> {
   }
 
   delete(value: T): void {
-    if (!this.search(value)) throw new Error(`${value} not in tree`);
+    if (!this.search(value)) throw new NotFoundError(`${value} not in tree`);
     this._root = this._delete(this._root, value);
     this._size--;
   }
