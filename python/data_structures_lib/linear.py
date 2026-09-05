@@ -1,6 +1,6 @@
 '''Linear data structures.'''
 
-from typing import Generic, Iterable, Iterator, List, Optional, TypeVar
+from typing import Generic, Iterable, Iterator, List, Optional, TypeVar, cast
 
 from .exceptions import EmptyStructureError
 
@@ -24,7 +24,7 @@ class DynamicArray(Generic[T]):
             raise ValueError('initial_capacity must be positive')
         self._capacity = initial_capacity
         self._size = 0
-        self._data: List[Optional[T]] = [None] * self._capacity
+        self._data: List[T] = cast(List[T], [None] * self._capacity)
 
     def __len__(self) -> int:
         return self._size
@@ -78,12 +78,12 @@ class DynamicArray(Generic[T]):
         self._size -= 1
         if self._size > 0 and self._size == self._capacity // 4 and self._capacity > 10:
             self._resize(self._capacity // 2)
-        return value  # type: ignore
+        return value
 
     def __getitem__(self, index: int) -> T:
         if not 0 <= index < self._size:
             raise IndexError('index out of range')
-        return self._data[index]  # type: ignore
+        return self._data[index]
 
     def __setitem__(self, index: int, value: T) -> None:
         if not 0 <= index < self._size:
@@ -92,7 +92,7 @@ class DynamicArray(Generic[T]):
 
     def __iter__(self) -> Iterator[T]:
         for i in range(self._size):
-            yield self._data[i]  # type: ignore
+            yield self._data[i]
 
     def __contains__(self, value: T) -> bool:
         for i in range(self._size):
@@ -104,7 +104,7 @@ class DynamicArray(Generic[T]):
         return f'DynamicArray({list(self)})'
 
     def _resize(self, new_capacity: int) -> None:
-        new_data: List[Optional[T]] = [None] * new_capacity
+        new_data: List[T] = cast(List[T], [None] * new_capacity)
         for i in range(self._size):
             new_data[i] = self._data[i]
         self._data = new_data
@@ -124,6 +124,7 @@ class SinglyLinkedList(Generic[T]):
 
     def __init__(self, iterable: Optional[Iterable[T]] = None) -> None:
         self._head: Optional[_SNode[T]] = None
+        self._tail: Optional[_SNode[T]] = None
         self._size = 0
         if iterable is not None:
             for item in iterable:
@@ -146,13 +147,11 @@ class SinglyLinkedList(Generic[T]):
     def append(self, value: T) -> None:
         '''Append a value to the end.'''
         node = _SNode(value)
-        if not self._head:
+        if not self._tail:
             self._head = node
         else:
-            current = self._head
-            while current.next_node:
-                current = current.next_node
-            current.next_node = node
+            self._tail.next_node = node
+        self._tail = node
         self._size += 1
 
     def prepend(self, value: T) -> None:
@@ -160,6 +159,8 @@ class SinglyLinkedList(Generic[T]):
         node = _SNode(value)
         node.next_node = self._head
         self._head = node
+        if not self._tail:
+            self._tail = node
         self._size += 1
 
     def insert(self, index: int, value: T) -> None:
@@ -173,6 +174,8 @@ class SinglyLinkedList(Generic[T]):
         previous = self._node_at(index - 1)
         node.next_node = previous.next_node
         previous.next_node = node
+        if not node.next_node:
+            self._tail = node
         self._size += 1
 
     def remove(self, value: T) -> None:
@@ -181,12 +184,16 @@ class SinglyLinkedList(Generic[T]):
             raise ValueError(f'{value!r} not in list')
         if self._head.value == value:
             self._head = self._head.next_node
+            if not self._head:
+                self._tail = None
             self._size -= 1
             return
         current = self._head
         while current.next_node:
             if current.next_node.value == value:
                 current.next_node = current.next_node.next_node
+                if not current.next_node:
+                    self._tail = current
                 self._size -= 1
                 return
             current = current.next_node
@@ -203,11 +210,15 @@ class SinglyLinkedList(Generic[T]):
         if index == 0:
             value = self._head.value
             self._head = self._head.next_node
+            if not self._head:
+                self._tail = None
             self._size -= 1
             return value
         previous = self._node_at(index - 1)
         node = previous.next_node
         previous.next_node = node.next_node
+        if not previous.next_node:
+            self._tail = previous
         self._size -= 1
         return node.value
 
@@ -474,8 +485,28 @@ class CircularLinkedList(Generic[T]):
             if current is start:
                 break
 
+    def _find(self, value: T) -> int:
+        '''Return the index of the first occurrence of value.'''
+        if not self._tail:
+            raise ValueError(f'{value!r} not in list')
+        start = self._tail.next_node
+        current = start
+        index = 0
+        while True:
+            if current.value == value:
+                return index
+            current = current.next_node
+            index += 1
+            if current is start:
+                break
+        raise ValueError(f'{value!r} not in list')
+
     def __contains__(self, value: T) -> bool:
-        return value in list(self)
+        try:
+            self._find(value)
+            return True
+        except ValueError:
+            return False
 
     def __repr__(self) -> str:
         return f'CircularLinkedList({list(self)})'
