@@ -58,7 +58,10 @@ impl<T> DynamicArray<T> {
 
     /// Removes and returns the item at the given index, defaulting to the last.
     pub fn pop(&mut self, index: Option<usize>) -> Result<T, Error> {
-        let idx = index.unwrap_or(self.data.len().saturating_sub(1));
+        if self.data.is_empty() {
+            return Err(Error::Empty);
+        }
+        let idx = index.unwrap_or(self.data.len() - 1);
         if idx >= self.data.len() {
             return Err(Error::OutOfBounds);
         }
@@ -96,7 +99,7 @@ impl<T> Default for DynamicArray<T> {
 
 #[derive(Debug)]
 struct SNode<T> {
-    value: T,
+    value: Option<T>,
     next: Option<usize>,
 }
 
@@ -132,15 +135,23 @@ impl<T> SinglyLinkedList<T> {
 
     fn alloc(&mut self, value: T) -> usize {
         if let Some(index) = self.free.pop() {
-            self.nodes[index] = SNode { value, next: None };
+            self.nodes[index] = SNode {
+                value: Some(value),
+                next: None,
+            };
             index
         } else {
-            self.nodes.push(SNode { value, next: None });
+            self.nodes.push(SNode {
+                value: Some(value),
+                next: None,
+            });
             self.nodes.len() - 1
         }
     }
 
     fn free_node(&mut self, index: usize) {
+        self.nodes[index].value = None;
+        self.nodes[index].next = None;
         self.free.push(index);
     }
 
@@ -205,7 +216,7 @@ impl<T> SinglyLinkedList<T> {
         T: PartialEq,
     {
         let head = self.head.ok_or(Error::NotFound)?;
-        if &self.nodes[head].value == value {
+        if self.nodes[head].value.as_ref() == Some(value) {
             let next = self.nodes[head].next;
             self.free_node(head);
             self.head = next;
@@ -214,7 +225,7 @@ impl<T> SinglyLinkedList<T> {
         }
         let mut current = head;
         while let Some(next) = self.nodes[current].next {
-            if &self.nodes[next].value == value {
+            if self.nodes[next].value.as_ref() == Some(value) {
                 self.nodes[current].next = self.nodes[next].next;
                 self.free_node(next);
                 self.len -= 1;
@@ -236,7 +247,7 @@ impl<T> SinglyLinkedList<T> {
         }
         if idx == 0 {
             let head = self.head.unwrap();
-            let value = std::mem::replace(&mut self.nodes[head].value, unsafe { std::mem::zeroed() });
+            let value = self.nodes[head].value.take().unwrap();
             let next = self.nodes[head].next;
             self.free_node(head);
             self.head = next;
@@ -245,7 +256,7 @@ impl<T> SinglyLinkedList<T> {
         }
         let prev = self.node_at(idx - 1)?;
         let current = self.nodes[prev].next.unwrap();
-        let value = std::mem::replace(&mut self.nodes[current].value, unsafe { std::mem::zeroed() });
+        let value = self.nodes[current].value.take().unwrap();
         self.nodes[prev].next = self.nodes[current].next;
         self.free_node(current);
         self.len -= 1;
@@ -255,13 +266,13 @@ impl<T> SinglyLinkedList<T> {
     /// Returns the item at index.
     pub fn get(&self, index: usize) -> Result<&T, Error> {
         let node = self.node_at(index)?;
-        Ok(&self.nodes[node].value)
+        Ok(self.nodes[node].value.as_ref().unwrap())
     }
 
     /// Returns a mutable reference to the item at index.
     pub fn get_mut(&mut self, index: usize) -> Result<&mut T, Error> {
         let node = self.node_at(index)?;
-        Ok(&mut self.nodes[node].value)
+        Ok(self.nodes[node].value.as_mut().unwrap())
     }
 
     /// Returns the index of the first occurrence of a value.
@@ -272,7 +283,7 @@ impl<T> SinglyLinkedList<T> {
         let mut current = self.head;
         let mut i = 0;
         while let Some(idx) = current {
-            if &self.nodes[idx].value == value {
+            if self.nodes[idx].value.as_ref() == Some(value) {
                 return Ok(i);
             }
             current = self.nodes[idx].next;
@@ -289,7 +300,7 @@ impl<T> SinglyLinkedList<T> {
         let mut result = Vec::with_capacity(self.len);
         let mut current = self.head;
         while let Some(idx) = current {
-            result.push(self.nodes[idx].value.clone());
+            result.push(self.nodes[idx].value.as_ref().unwrap().clone());
             current = self.nodes[idx].next;
         }
         result
@@ -304,7 +315,7 @@ impl<T> Default for SinglyLinkedList<T> {
 
 #[derive(Debug)]
 struct DNode<T> {
-    value: T,
+    value: Option<T>,
     prev: Option<usize>,
     next: Option<usize>,
 }
@@ -344,14 +355,14 @@ impl<T> DoublyLinkedList<T> {
     fn alloc(&mut self, value: T) -> usize {
         if let Some(index) = self.free.pop() {
             self.nodes[index] = DNode {
-                value,
+                value: Some(value),
                 prev: None,
                 next: None,
             };
             index
         } else {
             self.nodes.push(DNode {
-                value,
+                value: Some(value),
                 prev: None,
                 next: None,
             });
@@ -360,6 +371,9 @@ impl<T> DoublyLinkedList<T> {
     }
 
     fn free_node(&mut self, index: usize) {
+        self.nodes[index].value = None;
+        self.nodes[index].prev = None;
+        self.nodes[index].next = None;
         self.free.push(index);
     }
 
@@ -441,7 +455,7 @@ impl<T> DoublyLinkedList<T> {
     {
         let mut current = self.head;
         while let Some(idx) = current {
-            if &self.nodes[idx].value == value {
+            if self.nodes[idx].value.as_ref() == Some(value) {
                 self.remove_node(idx);
                 return Ok(());
             }
@@ -477,7 +491,7 @@ impl<T> DoublyLinkedList<T> {
             return Err(Error::OutOfBounds);
         }
         let node = self.node_at(idx)?;
-        let value = std::mem::replace(&mut self.nodes[node].value, unsafe { std::mem::zeroed() });
+        let value = self.nodes[node].value.take().unwrap();
         self.remove_node(node);
         Ok(value)
     }
@@ -485,13 +499,13 @@ impl<T> DoublyLinkedList<T> {
     /// Returns the item at index.
     pub fn get(&self, index: usize) -> Result<&T, Error> {
         let node = self.node_at(index)?;
-        Ok(&self.nodes[node].value)
+        Ok(self.nodes[node].value.as_ref().unwrap())
     }
 
     /// Returns a mutable reference to the item at index.
     pub fn get_mut(&mut self, index: usize) -> Result<&mut T, Error> {
         let node = self.node_at(index)?;
-        Ok(&mut self.nodes[node].value)
+        Ok(self.nodes[node].value.as_mut().unwrap())
     }
 
     /// Returns a Vec of all values.
@@ -502,7 +516,7 @@ impl<T> DoublyLinkedList<T> {
         let mut result = Vec::with_capacity(self.len);
         let mut current = self.head;
         while let Some(idx) = current {
-            result.push(self.nodes[idx].value.clone());
+            result.push(self.nodes[idx].value.as_ref().unwrap().clone());
             current = self.nodes[idx].next;
         }
         result
@@ -517,7 +531,7 @@ impl<T> Default for DoublyLinkedList<T> {
 
 #[derive(Debug)]
 struct CNode<T> {
-    value: T,
+    value: Option<T>,
     next: Option<usize>,
 }
 
@@ -553,15 +567,23 @@ impl<T> CircularLinkedList<T> {
 
     fn alloc(&mut self, value: T) -> usize {
         if let Some(index) = self.free.pop() {
-            self.nodes[index] = CNode { value, next: None };
+            self.nodes[index] = CNode {
+                value: Some(value),
+                next: None,
+            };
             index
         } else {
-            self.nodes.push(CNode { value, next: None });
+            self.nodes.push(CNode {
+                value: Some(value),
+                next: None,
+            });
             self.nodes.len() - 1
         }
     }
 
     fn free_node(&mut self, index: usize) {
+        self.nodes[index].value = None;
+        self.nodes[index].next = None;
         self.free.push(index);
     }
 
@@ -601,7 +623,7 @@ impl<T> CircularLinkedList<T> {
     {
         let tail = self.tail.ok_or(Error::NotFound)?;
         let head = self.nodes[tail].next.unwrap();
-        if &self.nodes[head].value == value {
+        if self.nodes[head].value.as_ref() == Some(value) {
             if head == tail {
                 self.tail = None;
             } else {
@@ -613,18 +635,18 @@ impl<T> CircularLinkedList<T> {
         }
         let mut current = head;
         for _ in 0..self.len - 1 {
-            if &self.nodes[self.nodes[current].next.unwrap()].value == value {
-                let to_remove = self.nodes[current].next.unwrap();
-                let after = self.nodes[to_remove].next;
+            let next = self.nodes[current].next.unwrap();
+            if self.nodes[next].value.as_ref() == Some(value) {
+                let after = self.nodes[next].next;
                 self.nodes[current].next = after;
-                if to_remove == tail {
+                if next == tail {
                     self.tail = Some(current);
                 }
-                self.free_node(to_remove);
+                self.free_node(next);
                 self.len -= 1;
                 return Ok(());
             }
-            current = self.nodes[current].next.unwrap();
+            current = next;
         }
         Err(Error::NotFound)
     }
@@ -642,7 +664,7 @@ impl<T> CircularLinkedList<T> {
         let start = self.nodes[tail].next.unwrap();
         let mut current = start;
         loop {
-            result.push(self.nodes[current].value.clone());
+            result.push(self.nodes[current].value.as_ref().unwrap().clone());
             current = self.nodes[current].next.unwrap();
             if current == start {
                 break;
