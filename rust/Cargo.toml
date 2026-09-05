@@ -1,6 +1,6 @@
 [package]
 name = "data-structures-lib"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Parthiv Rawat"]
 license = "MIT"
@@ -13,3 +13,6 @@ keywords = ["data-structures", "collections", "stack", "queue", "heap"]
 categories = ["data-structures"]
 
 [dependencies]
+
+[dev-dependencies]
+rand = "0.8.5"

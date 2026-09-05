@@ -20,7 +20,7 @@ from .probabilistic import BloomFilter
 from .trees import AVLTree, BinarySearchTree
 from .tries import Trie
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 __all__ = [
     'AVLTree',

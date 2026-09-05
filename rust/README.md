@@ -8,7 +8,7 @@ Add the crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-data-structures-lib = "1.0.0"
+data-structures-lib = "1.1.0"
 ```
 
 ## Quick Start

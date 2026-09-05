@@ -1,3 +1,5 @@
+import { InvalidArgumentError, NotFoundError } from './exceptions';
+
 /**
  * A least-recently-used cache with a fixed capacity.
  */
@@ -5,7 +7,7 @@ export class LRUCache<K, V> {
   private _cache = new Map<K, V>();
 
   constructor(private _capacity: number) {
-    if (_capacity <= 0) throw new Error('capacity must be positive');
+    if (_capacity <= 0) throw new InvalidArgumentError('capacity must be positive');
   }
 
   get size(): number {
@@ -18,7 +20,7 @@ export class LRUCache<K, V> {
 
   get(key: K): V {
     if (!this._cache.has(key)) {
-      throw new Error(`Key not found: ${String(key)}`);
+      throw new NotFoundError(`Key not found: ${String(key)}`);
     }
     const value = this._cache.get(key)!;
     this._cache.delete(key);

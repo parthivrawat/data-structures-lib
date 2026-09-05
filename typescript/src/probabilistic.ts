@@ -1,3 +1,5 @@
+import { InvalidArgumentError } from './exceptions';
+
 /**
  * A Bloom filter for membership queries.
  */
@@ -8,8 +10,8 @@ export class BloomFilter {
   private _itemsAdded = 0;
 
   constructor(expectedItems: number = 1000, falsePositiveRate: number = 0.01) {
-    if (expectedItems <= 0) throw new Error('expectedItems must be positive');
-    if (falsePositiveRate <= 0 || falsePositiveRate >= 1) throw new Error('falsePositiveRate must be between 0 and 1');
+    if (expectedItems <= 0) throw new InvalidArgumentError('expectedItems must be positive');
+    if (falsePositiveRate <= 0 || falsePositiveRate >= 1) throw new InvalidArgumentError('falsePositiveRate must be between 0 and 1');
     const m = Math.ceil(-(expectedItems * Math.log(falsePositiveRate)) / (Math.log(2) ** 2));
     const k = Math.max(1, Math.round((m / expectedItems) * Math.log(2)));
     this._size = m;

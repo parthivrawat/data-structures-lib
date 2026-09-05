@@ -1,18 +1,16 @@
 package datastructures
 
-import (
-	"reflect"
-)
+
 
 // DynamicArray is a dynamic array with automatic resizing.
-type DynamicArray[T any] struct {
+type DynamicArray[T comparable] struct {
 	data     []T
 	size     int
 	capacity int
 }
 
 // NewDynamicArray creates a new DynamicArray.
-func NewDynamicArray[T any](initialCapacity ...int) *DynamicArray[T] {
+func NewDynamicArray[T comparable](initialCapacity ...int) *DynamicArray[T] {
 	c := 10
 	if len(initialCapacity) > 0 && initialCapacity[0] > 0 {
 		c = initialCapacity[0]
@@ -61,7 +59,7 @@ func (a *DynamicArray[T]) Insert(index int, value T) error {
 // Remove removes the first occurrence of value.
 func (a *DynamicArray[T]) Remove(value T) error {
 	for i := 0; i < a.size; i++ {
-		if reflect.DeepEqual(a.data[i], value) {
+		if a.data[i] == value {
 			a.Pop(i)
 			return nil
 		}
@@ -135,13 +133,14 @@ type sNode[T any] struct {
 }
 
 // SinglyLinkedList is a singly linked list.
-type SinglyLinkedList[T any] struct {
+type SinglyLinkedList[T comparable] struct {
 	head *sNode[T]
+	tail *sNode[T]
 	size int
 }
 
 // NewSinglyLinkedList creates a new SinglyLinkedList.
-func NewSinglyLinkedList[T any]() *SinglyLinkedList[T] {
+func NewSinglyLinkedList[T comparable]() *SinglyLinkedList[T] {
 	return &SinglyLinkedList[T]{}
 }
 
@@ -154,14 +153,12 @@ func (l *SinglyLinkedList[T]) IsEmpty() bool { return l.size == 0 }
 // Append adds a value to the end.
 func (l *SinglyLinkedList[T]) Append(value T) {
 	node := &sNode[T]{value: value}
-	if l.head == nil {
+	if l.tail == nil {
 		l.head = node
+		l.tail = node
 	} else {
-		current := l.head
-		for current.next != nil {
-			current = current.next
-		}
-		current.next = node
+		l.tail.next = node
+		l.tail = node
 	}
 	l.size++
 }
@@ -170,6 +167,9 @@ func (l *SinglyLinkedList[T]) Append(value T) {
 func (l *SinglyLinkedList[T]) Prepend(value T) {
 	node := &sNode[T]{value: value, next: l.head}
 	l.head = node
+	if l.tail == nil {
+		l.tail = node
+	}
 	l.size++
 }
 
@@ -180,6 +180,10 @@ func (l *SinglyLinkedList[T]) Insert(index int, value T) error {
 	}
 	if index == 0 {
 		l.Prepend(value)
+		return nil
+	}
+	if index == l.size {
+		l.Append(value)
 		return nil
 	}
 	prev := l.nodeAt(index - 1)
@@ -194,15 +198,21 @@ func (l *SinglyLinkedList[T]) Remove(value T) error {
 	if l.head == nil {
 		return ErrNotFound
 	}
-	if reflect.DeepEqual(l.head.value, value) {
+	if l.head.value == value {
 		l.head = l.head.next
+		if l.head == nil {
+			l.tail = nil
+		}
 		l.size--
 		return nil
 	}
 	current := l.head
 	for current.next != nil {
-		if reflect.DeepEqual(current.next.value, value) {
+		if current.next.value == value {
 			current.next = current.next.next
+			if current.next == nil {
+				l.tail = current
+			}
 			l.size--
 			return nil
 		}
@@ -226,6 +236,9 @@ func (l *SinglyLinkedList[T]) Pop(index int) (T, error) {
 	if index == 0 {
 		value := l.head.value
 		l.head = l.head.next
+		if l.head == nil {
+			l.tail = nil
+		}
 		l.size--
 		return value, nil
 	}
@@ -233,6 +246,9 @@ func (l *SinglyLinkedList[T]) Pop(index int) (T, error) {
 	node := prev.next
 	value := node.value
 	prev.next = node.next
+	if prev.next == nil {
+		l.tail = prev
+	}
 	l.size--
 	return value, nil
 }
@@ -260,7 +276,7 @@ func (l *SinglyLinkedList[T]) Find(value T) (int, error) {
 	current := l.head
 	i := 0
 	for current != nil {
-		if reflect.DeepEqual(current.value, value) {
+		if current.value == value {
 			return i, nil
 		}
 		current = current.next
@@ -296,14 +312,14 @@ type dNode[T any] struct {
 }
 
 // DoublyLinkedList is a doubly linked list.
-type DoublyLinkedList[T any] struct {
+type DoublyLinkedList[T comparable] struct {
 	head *dNode[T]
 	tail *dNode[T]
 	size int
 }
 
 // NewDoublyLinkedList creates a new DoublyLinkedList.
-func NewDoublyLinkedList[T any]() *DoublyLinkedList[T] {
+func NewDoublyLinkedList[T comparable]() *DoublyLinkedList[T] {
 	return &DoublyLinkedList[T]{}
 }
 
@@ -367,7 +383,7 @@ func (l *DoublyLinkedList[T]) Insert(index int, value T) error {
 func (l *DoublyLinkedList[T]) Remove(value T) error {
 	current := l.head
 	for current != nil {
-		if reflect.DeepEqual(current.value, value) {
+		if current.value == value {
 			l.removeNode(current)
 			return nil
 		}
@@ -458,13 +474,13 @@ type cNode[T any] struct {
 }
 
 // CircularLinkedList is a circular linked list.
-type CircularLinkedList[T any] struct {
+type CircularLinkedList[T comparable] struct {
 	tail *cNode[T]
 	size int
 }
 
 // NewCircularLinkedList creates a new CircularLinkedList.
-func NewCircularLinkedList[T any]() *CircularLinkedList[T] {
+func NewCircularLinkedList[T comparable]() *CircularLinkedList[T] {
 	return &CircularLinkedList[T]{}
 }
 
@@ -507,7 +523,7 @@ func (l *CircularLinkedList[T]) Remove(value T) error {
 		return ErrNotFound
 	}
 	head := l.tail.next
-	if reflect.DeepEqual(head.value, value) {
+	if head.value == value {
 		if head == l.tail {
 			l.tail = nil
 		} else {
@@ -518,7 +534,7 @@ func (l *CircularLinkedList[T]) Remove(value T) error {
 	}
 	current := head
 	for i := 0; i < l.size-1; i++ {
-		if reflect.DeepEqual(current.next.value, value) {
+		if current.next.value == value {
 			current.next = current.next.next
 			if current.next == head {
 				l.tail = current

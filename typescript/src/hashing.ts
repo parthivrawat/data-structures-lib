@@ -1,6 +1,8 @@
 /**
  * Compute a non-negative integer hash for an arbitrary value.
  */
+import { InvalidArgumentError, NotFoundError } from './exceptions';
+
 export function defaultHash(value: unknown): number {
   if (typeof value === 'number') {
     return Math.abs(Math.floor(value));
@@ -36,8 +38,8 @@ export class HashMap<K, V> {
   private _table: [K, V][][];
 
   constructor(capacity: number = 16, loadFactor: number = 0.75) {
-    if (capacity <= 0) throw new Error('capacity must be positive');
-    if (loadFactor <= 0 || loadFactor > 1) throw new Error('loadFactor must be between 0 and 1');
+    if (capacity <= 0) throw new InvalidArgumentError('capacity must be positive');
+    if (loadFactor <= 0 || loadFactor > 1) throw new InvalidArgumentError('loadFactor must be between 0 and 1');
     this._capacity = capacity;
     this._loadFactor = loadFactor;
     this._size = 0;
@@ -172,7 +174,7 @@ export class HashSet<T> {
 
   remove(value: T): void {
     if (!this.has(value)) {
-      throw new Error(`${value} not in set`);
+      throw new NotFoundError(`${value} not in set`);
     }
     this._map.delete(value);
   }

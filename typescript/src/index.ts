@@ -7,7 +7,12 @@
  * @license MIT
  */
 
-export { EmptyStructureError } from './exceptions';
+export {
+  EmptyStructureError,
+  IndexOutOfRangeError,
+  InvalidArgumentError,
+  NotFoundError,
+} from './exceptions';
 export {
   DynamicArray,
   SinglyLinkedList,
