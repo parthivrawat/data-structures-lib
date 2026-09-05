@@ -7,7 +7,7 @@ name = "data-structures-lib"
 version = "1.1.0"
 description = "A comprehensive, zero-dependency collection of fundamental data structures for Python"
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 authors = [
     {name = "Parthiv Rawat"},
 ]

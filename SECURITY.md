@@ -30,7 +30,7 @@ Some implementations use language-native non-null assertions (e.g., Rust `unwrap
 
 ## Reporting a security issue
 
-If you believe you have found a security-relevant bug, please open a private GitHub issue or email the repository maintainer. Include:
+If you believe you have found a security-relevant bug, please report it privately using GitHub's "Report a vulnerability" flow on the repository's Security tab (requires private vulnerability reporting to be enabled). Do not open a public issue for security reports. Include:
 
 - The language implementation affected
 - A minimal reproduction example
