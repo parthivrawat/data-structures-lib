@@ -8,6 +8,8 @@ A comprehensive, zero-dependency collection of fundamental data structures for G
 go get github.com/parthivrawat/data-structures-lib/go
 ```
 
+The module lives in the `go` subdirectory, but the package name is `datastructures` (because `go` is a Go keyword). Import it using the package name as shown below.
+
 ## Quick Start
 
 ```go
